@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel IoT</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Bienvenido, <span id="username">...</span></h2>
+    <p>Tu correo: <span id="email">...</span></p>
+    <p>Tu rol: <span id="rol">...</span></p>
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
+
+    <hr>
+
+    <h3>Usuarios Registrados</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Reglas ACL</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-usuarios">
+        <!-- Usuarios se cargarán aquí -->
+      </tbody>
+    </table>
+   <h3>📡 Datos en tiempo real (MQTT)</h3>
+    <div id="mqtt-output" style="background:#f4f4f4;padding:15px;border-radius:10px;text-align:left;">
+     <p>Esperando datos...<p>
+   </div>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <script src="js/mqtt-client.js"></script>
+
+</body>
+</html>

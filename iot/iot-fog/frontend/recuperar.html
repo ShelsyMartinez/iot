@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Recuperar Usuario</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h2>¿Olvidaste tu nombre de usuario?</h2>
+    <p>Pega tu token JWT para identificarte</p>
+
+    <textarea id="token" placeholder="Pega aquí tu token JWT"></textarea>
+    <button onclick="recuperarUsuario()">Buscar usuario</button>
+
+    <p id="resultado"></p>
+    <a href="index.html">Volver al inicio</a>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>
+

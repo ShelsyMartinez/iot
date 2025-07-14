@@ -1,0 +1,47 @@
+<!DOCTYPE html> <html lang="es"> <head>
+  <meta charset="UTF-8">
+  <title>Acceder con Token - IoT Platform</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Inicio de sesión con token</h2>
+
+    <input type="text" id="token" placeholder="Ingresa tu token">
+    <button onclick="accederConToken()">Iniciar Sesión</button>
+
+    <p>
+      <a href="recuperar.html">¿Olvidaste tu token?</a>
+    </p>
+    <p id="mensaje" style="color: red;"></p>
+  </div>
+
+  <script>
+    async function accederConToken() {
+      const token = document.getElementById("token").value.trim();
+      const mensaje = document.getElementById("mensaje");
+
+	if (!token) {
+		mensaje.textContent = "Debes ingresar un token"; 
+	return;
+	}
+	try {
+		const res = await fetch("http://3.16.48.213:8000/profile", {
+			headers: { "Authorization": "Bearer " + token }
+		});
+
+		if (res.ok) {
+			localStorage.setItem("token", token);
+			window.location.href = "dashboard.html";
+		} else {
+			mensaje.textContent = "Token inválido o expirado";
+		}
+	} catch (err) {
+		console.error("Error validando token:", err);
+		mensaje.textContent = "Error al conectar con el servidor";
+	}
+}
+
+  </script>
+</body>
+</html>
