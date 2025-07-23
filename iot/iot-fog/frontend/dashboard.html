@@ -2,41 +2,215 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Panel IoT</title>
+  <title>Dashboard IoT</title>
   <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://cdn.pixabay.com/photo/2016/08/31/22/36/background-1634817_960_720.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .container {
+      background-color: rgba(0, 0, 0, 0.65);
+      color: white;
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .dashboard-header h2 {
+      font-size: 28px;
+    }
+
+    .logout-btn {
+      background-color: #e74c3c;
+      border: none;
+      padding: 10px 18px;
+      color: white;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .tab-menu {
+      display: flex;
+      justify-content: space-around;
+      background: #1e1e1e;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid #fff;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .tab-btn.active {
+      background-color: #3498db;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 15px;
+    }
+
+    input, select {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      width: 100%;
+    }
+
+    button[type="submit"] {
+      align-self: flex-start;
+      background-color: #2ecc71;
+      border: none;
+      padding: 10px 20px;
+      color: white;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background-color: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+
+    table th, table td {
+      padding: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      text-align: left;
+    }
+
+    table th {
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    hr {
+      border: 1px solid rgba(255,255,255,0.3);
+      margin-bottom: 20px;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h2>Bienvenido, <span id="username">...</span></h2>
-    <p>Tu correo: <span id="email">...</span></p>
-    <p>Tu rol: <span id="rol">...</span></p>
-    <button onclick="cerrarSesion()">Cerrar sesión</button>
+    <header class="dashboard-header">
+      <h2><i class="fa-solid fa-chart-line"></i> Panel de Administración IoT</h2>
+      <button onclick="cerrarSesion()" class="logout-btn">
+        <i class="fa-solid fa-sign-out-alt"></i> Cerrar sesión
+      </button>
+    </header>
 
-    <hr>
+    <!-- Menú de pestañas -->
+    <nav class="tab-menu">
+      <button class="tab-btn" onclick="mostrarTab('dispositivos')"><i class="fa-solid fa-microchip"></i> Dispositivos</button>
+      <button class="tab-btn" onclick="mostrarTab('variables')"><i class="fa-solid fa-sliders-h"></i> Variables</button>
+      <button class="tab-btn" onclick="mostrarTab('alarmas')"><i class="fa-solid fa-bell"></i> Alarmas</button>
+    </nav>
 
-    <h3>Usuarios Registrados</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Username</th>
-          <th>Email</th>
-          <th>Rol</th>
-          <th>Reglas ACL</th>
-        </tr>
-      </thead>
-      <tbody id="tabla-usuarios">
-        <!-- Usuarios se cargarán aquí -->
-      </tbody>
-    </table>
-   <h3>📡 Datos en tiempo real (MQTT)</h3>
-    <div id="mqtt-output" style="background:#f4f4f4;padding:15px;border-radius:10px;text-align:left;">
-     <p>Esperando datos...<p>
-   </div>
+    <!-- Dispositivos -->
+    <section id="tab-dispositivos" class="tab-content">
+      <h3><i class="fa-solid fa-microchip"></i> Gestión de Dispositivos</h3>
+      <hr>
+      <h4>➕ Crear nuevo dispositivo</h4>
+      <form id="form-crear-dispositivo" onsubmit="crearDispositivo(event)">
+        <div class="form-grid">
+          <input id="nuevo-device-id" placeholder="ID del dispositivo *" required>
+          <input id="nuevo-device-name" placeholder="Nombre del dispositivo *" required>
+        </div>
+        <button type="submit">Crear Dispositivo</button>
+        <p id="mensaje-dispositivo"></p>
+      </form>
+    </section>
+
+    <!-- Variables -->
+    <section id="tab-variables" class="tab-content">
+      <h3><i class="fa-solid fa-sliders-h"></i> Gestión de Variables</h3>
+      <hr>
+
+
+      <h4>➕ Crear nueva variable</h4>
+      <form id="form-crear-variable" onsubmit="crearVariable(event)">
+        <div class="form-grid">
+          <input id="nuevo-variable-id" placeholder="ID de variable *" required>
+          <input id="nuevo-variable-device" placeholder="ID del dispositivo *" required>
+          <input id="nuevo-variable-usuario" placeholder="Usuario propietario *" required>
+          <input id="nuevo-variable-tipo" placeholder="Tipo (temperatura, humedad, etc)" required>
+          <input id="nuevo-variable-unidad" placeholder="Unidad de medida (°C, %, etc)" required>
+        </div>
+        <button type="submit">Crear Variable</button>
+        <p id="mensaje-variable"></p>
+      </form>
+    </section>
+
+    <!-- Alarmas -->
+    <section id="tab-alarmas" class="tab-content">
+      <h3><i class="fa-solid fa-bell"></i> Gestión de Alarmas</h3>
+      <hr>
+      <h4>➕ Crear nueva alarma</h4>
+      <form id="form-crear-alarma" onsubmit="crearAlarma(event)">
+        <div class="form-grid">
+          <input id="alarma-usuario" placeholder="Usuario *" required>
+          <input id="alarma-device-id" placeholder="ID del dispositivo *" required>
+          <input id="alarma-variable-id" placeholder="ID de variable *" required>
+          <input id="alarma-campo" placeholder="Campo del payload (ej: valor)" required>
+          <select id="alarma-operador">
+            <option value=">">Mayor que (>)</option>
+            <option value="<">Menor que (<)</option>
+            <option value=">=">Mayor o igual (>=)</option>
+            <option value="<=">Menor o igual (<=)</option>
+            <option value="=">Igual (=)</option>
+            <option value="!=">Distinto (!=)</option>
+          </select>
+          <input id="alarma-umbral" type="number" step="any" placeholder="Valor umbral *" required>
+        </div>
+        <button type="submit">Crear Alarma</button>
+        <p id="mensaje-alarma"></p>
+      </form>
+    </section>
   </div>
 
   <script src="js/dashboard.js"></script>
-  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-  <script src="js/mqtt-client.js"></script>
-
+  <script>
+    function mostrarTab(tab) {
+      document.querySelectorAll(".tab-content").forEach(e => e.classList.remove("active"));
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.getElementById(`tab-${tab}`).classList.add("active");
+      event.target.classList.add("active");
+    }
+  </script>
 </body>
 </html>
