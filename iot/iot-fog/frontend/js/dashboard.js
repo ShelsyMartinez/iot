@@ -1,67 +1,157 @@
-0async function cargarDashboard() {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert("No has iniciado sesión");
-    window.location.href = "index.html";
+async function crearUsuario(event) {
+  event.preventDefault();
+  const token = localStorage.getItem("token");
+  const mensaje = document.getElementById("mensaje-creacion");
+
+  const data = {
+    username: document.getElementById("nuevo-username").value.trim(),
+    password: document.getElementById("nuevo-password").value.trim(),
+    email: document.getElementById("nuevo-email").value.trim(),
+    name: document.getElementById("nuevo-name").value.trim(),
+    country: document.getElementById("nuevo-country").value.trim(),
+    city: document.getElementById("nuevo-city").value.trim(),
+    company: document.getElementById("nuevo-company").value.trim() || null,
+    rol: document.getElementById("nuevo-rol").value || "usuario"
+  };
+
+  if (!data.username || !data.password || !data.email || !data.name || !data.country || !data.city) {
+    mensaje.textContent = "⚠️ Todos los campos obligatorios deben estar llenos.";
+    mensaje.style.color = "red";
     return;
   }
 
-  try {
-    // Obtener perfil
-    const perfilResp = await fetch('http://3.16.48.213:8000/profile', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const perfil = await perfilResp.json();
-    document.getElementById("username").textContent = perfil.usuario.username;
-    document.getElementById("email").textContent = perfil.usuario.email;
-    document.getElementById("rol").textContent = perfil.usuario.rol;
+  console.log("📤 Enviando al backend:", data);
 
-    // Obtener reglas ACL
-    const aclResp = await fetch('http://3.16.48.213:8000/emqx/mqtt-acl', {
-      headers: { Authorization: `Bearer ${token}` }
+  try {
+    const res = await fetch("http://3.16.48.213:8000/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
     });
-    const reglas = await aclResp.json();
-   
-   if (!Array.isArray(reglas)) {
-  throw new Error("Respuesta de /mqtt-acl no es una lista");
+
+    if (!res.ok) {
+      const error = await res.json();
+      mensaje.textContent = error.detail || "❌ No se pudo crear el usuario.";
+      mensaje.style.color = "red";
+      return;
+    }
+
+    mensaje.textContent = "✅ Usuario creado exitosamente.";
+    mensaje.style.color = "green";
+    cargarDashboard();
+    document.getElementById("form-crear-usuario").reset();
+  } catch (err) {
+    console.error("Error al crear usuario:", err);
+    mensaje.textContent = "❌ Error de red. Intenta más tarde.";
+    mensaje.style.color = "red";
+  }
 }
 
-    const mapaACL = {};
-    reglas.forEach(r => {
-      if (!mapaACL[r.username]) mapaACL[r.username] = [];
-      mapaACL[r.username].push(r.topic);
+// Crear Dispositivo
+async function crearDispositivo(event) {
+  event.preventDefault();
+  const token = localStorage.getItem('token');
+  const deviceId = document.getElementById("nuevo-device-id").value;
+  const deviceName = document.getElementById("nuevo-device-name").value;
+
+  try {
+    const res = await fetch("http://3.16.48.213:8000/devices", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ device_id: deviceId, name: deviceName })
     });
 
-    // Obtener usuarios
-    const usuariosResp = await fetch('http://3.16.48.213:8000/users', {
-      headers: { Authorization: `Bearer ${token}` }
+    if (res.ok) {
+      alert("✅ Dispositivo creado");
+      event.target.reset();
+    } else {
+      const error = await res.json();
+      alert("❌ Error al crear dispositivo: " + error.detail);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error de conexión al crear dispositivo");
+  }
+}
+
+// Crear Variable
+async function crearVariable(event) {
+  event.preventDefault();
+  const token = localStorage.getItem('token');
+  const data = {
+    device_id: document.getElementById("variable-device-id").value,
+    variable_id: document.getElementById("variable-id").value,
+    unit: document.getElementById("variable-unit").value,
+    min: parseFloat(document.getElementById("variable-min").value),
+    max: parseFloat(document.getElementById("variable-max").value),
+  };
+
+  try {
+    const res = await fetch("http://3.16.48.213:8000/variables", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
     });
-    const usuarios = await usuariosResp.json();
 
-    const tabla = document.getElementById("tabla-usuarios");
-    tabla.innerHTML = ""; // Limpiar tabla
+    if (res.ok) {
+      alert("✅ Variable creada");
+      event.target.reset();
+    } else {
+      const error = await res.json();
+      alert("❌ Error al crear variable: " + error.detail);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error de conexión al crear variable");
+  }
+}
 
-    usuarios.forEach(u => {
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${u.username}</td>
-        <td>${u.email}</td>
-        <td>${u.rol}</td>
-        <td>${(mapaACL[u.username] || []).join("<br>")}</td>
-      `;
-      tabla.appendChild(fila);
+// Crear Alarma
+async function crearAlarma(event) {
+  event.preventDefault();
+  const token = localStorage.getItem('token');
+  const data = {
+    device_id: document.getElementById("alarma-device-id").value,
+    variable_id: document.getElementById("alarma-variable-id").value,
+    field: document.getElementById("alarma-field").value,
+    operator: document.getElementById("alarma-operator").value,
+    threshold: parseFloat(document.getElementById("alarma-threshold").value)
+  };
+
+  try {
+    const res = await fetch("http://3.16.48.213:8000/alarms", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(data)
     });
 
-  } catch (error) {
-    alert("Error al cargar el dashboard: " + error.message);
-    localStorage.removeItem("token");
-    window.location.href = "index.html";
+    if (res.ok) {
+      alert("✅ Alarma creada");
+      event.target.reset();
+    } else {
+      const error = await res.json();
+      alert("❌ Error al crear alarma: " + error.detail);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("❌ Error de conexión al crear alarma");
   }
 }
 
 function cerrarSesion() {
   localStorage.removeItem("token");
+  localStorage.removeItem("mqttUser");
   window.location.href = "index.html";
 }
-
-window.onload = cargarDashboard;
